@@ -38,20 +38,15 @@ class EzSNMP():
     def __init__(self, host, community='public', port=161):
         self._generator = get_cmdgen()
 
-        # 1 means version SNMP v2c
         #: :class:`pysnmp.entity.rfc3413.oneliner.cmdgen.CommunityData`
-        self._comm_data = cmdgen.CommunityData('server', community, 1)
+        self._comm_data = cmdgen.CommunityData(community)
 
+        # TODO: IPv6 support
         #: :class:`pysnmp.entity.rfc3413.oneliner.cmdgen.UdpTransportTarget`
         self._transport = cmdgen.UdpTransportTarget((host, port))
 
         #: hostname
         self.host = host
-        # caching stuff
-
-        self._sysdescr = None
-        self._if_status = None
-        self._iftypes = None
 
     def walk(self, oid, *, bulk=True, bulk_count=40):
         '''Walks over all entries within the given OID subtree.
