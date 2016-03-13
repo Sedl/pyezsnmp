@@ -64,3 +64,6 @@ target/
 # Rope
 .ropeproject
 venv
+
+/test.py
+*.swp
