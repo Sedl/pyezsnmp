@@ -33,9 +33,24 @@ class EzSNMP():
     Keyword Args:
         community (str): SNMP community
         port (int): SNMP port
+        bulk (bool): If set to `True` bulk walks will be used.
+            On most devices this is save.
+        bulk_count (int): Number of SNMP values to get in one bulk request.
+            If the packet is larger than the MTU of the device, the packet
+            sent from the device will be fragmented. PySNMP handles this very
+            well. The default value of 40 should provide a good balance
+            between speed and packet fragmentation.
     '''
 
-    def __init__(self, host, community='public', port=161):
+    def __init__(self, host, community='public', port=161, bulk=True,
+                 bulk_count=40):
+
+        #: If set to `False` don't use bulk requests
+        self.bulk = bulk
+
+        #: number of items to get in one GETBULK query
+        self.bulk_count = bulk_count
+
         self._generator = get_cmdgen()
 
         #: :class:`pysnmp.entity.rfc3413.oneliner.cmdgen.CommunityData`
@@ -48,7 +63,7 @@ class EzSNMP():
         #: hostname
         self.host = host
 
-    def walk(self, oid, *, bulk=True, bulk_count=40):
+    def walk(self, oid):
         '''Walks over all entries within the given OID subtree.
 
         If you are using bulk walks, there can be elements of other subtrees
@@ -58,15 +73,6 @@ class EzSNMP():
         Args:
             oid (ObjectIdentifier): OID of the entry to walk over
 
-        Keyword Args:
-            bulk (bool): If set to `True` bulk walks will be used.
-              On most devices this is save.
-            bulk_count (int): Number of SNMP values to get in one bulk request.
-              If the packet is larger than the MTU of the device, the packet
-              sent from the device will be fragmented. PySNMP handles this very
-              well. I believe the default value of 40 provides a good balance
-              between speed and packet fragmentation.
-
         Returns:
             pysnmp var_binds
 
@@ -74,12 +80,12 @@ class EzSNMP():
             SNMPError: SNMP device sends an error
             SNMPTimeout: A timeout occured
         '''
-        if bulk:
+        if self.bulk:
             error_indication, error_status, error_index, \
                     var_binds = self._generator.bulkCmd(self._comm_data,
                                                         self._transport,
                                                         0,
-                                                        bulk_count,
+                                                        self.bulk_count,
                                                         oid)
 
         else:
@@ -94,7 +100,7 @@ class EzSNMP():
                 raise SNMPError(error_status, error_index)
         return var_binds
 
-    def walk_iter(self, oid, convert=None, bulk=True, bulk_count=None):
+    def walk_iter(self, oid, convert=None):
         '''Performs a SNMP walk with the given OID and returns a tuple with
         oid and value. This function will not return values from other
         SNMP trees than requested.
@@ -103,15 +109,12 @@ class EzSNMP():
             oid (ObjectIdentifier): the OID of the subtree to walk over
         Keyword Args:
             convert (function): used to convert the returned value
-            bulk (bool): use bulk walk (default is `True`)
         '''
 
         if not isinstance(oid, ObjectIdentifier):
             oid = ObjectIdentifier(oid)
 
-        kwargs = {'bulk_count': bulk_count} if bulk_count else {}
-
-        for var in self.walk(oid, bulk=bulk, **kwargs):
+        for var in self.walk(oid):
             oid_ret, val = var[0]
             oid_tup = tuple(oid_ret)
 
