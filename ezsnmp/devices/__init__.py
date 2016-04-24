@@ -84,3 +84,16 @@ class BaseDevice(EzSNMP):
             (1, 3, 6, 1, 2, 1, 2, 2, 1, 7),
             convert=int)}
         return ifstatus
+
+    def walk_ifoperstatus(self):
+        ''' IF-MIB::ifOperStatus (1.3.6.1.2.1.2.2.1.8)
+
+        Status values:
+            up(1)
+            down(2)
+            testing(3)
+        '''
+        ifoper = {oid[-1]: val for oid, val in self.walk_iter(
+            (1, 3, 6, 1, 2, 1, 2, 2, 1, 8),
+            convert=int)}
+        return ifoper
