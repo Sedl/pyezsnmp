@@ -1,5 +1,6 @@
 
 import threading
+import socket
 
 from pysnmp.entity.rfc3413.oneliner import cmdgen
 #   from pysnmp.proto import rfc1902
@@ -9,6 +10,15 @@ from .exc import SNMPTimeout
 from .exc import SNMPError
 
 MOD_LOCAL = threading.local()
+
+
+class UdpTransportTarget(cmdgen.UdpTransportTarget):
+    def _resolveAddr(self, transportAddr):
+        return socket.getaddrinfo(transportAddr[0],
+                                  transportAddr[1],
+                                  socket.AF_INET,
+                                  socket.SOCK_DGRAM,
+                                  socket.IPPROTO_UDP)[0][4][:2]
 
 
 def get_cmdgen():
@@ -58,12 +68,20 @@ class EzSNMP():
         #: :class:`pysnmp.entity.rfc3413.oneliner.cmdgen.CommunityData`
         self._comm_data = cmdgen.CommunityData(community)
 
-        # TODO: IPv6 support
-        #: :class:`pysnmp.entity.rfc3413.oneliner.cmdgen.UdpTransportTarget`
-        self._transport = cmdgen.UdpTransportTarget((host, port))
+        self._transp = None
 
         #: hostname
         self.host = host
+
+        self.port = port
+
+    @property
+    def _transport(self):
+        # TODO: IPv6 support
+        # This is only used to defer the domain resolution
+        if self._transp is None:
+            self._transp = UdpTransportTarget((self.host, self.port))
+        return self._transp
 
     def walk(self, oid):
         '''Walks over all entries within the given OID subtree.
