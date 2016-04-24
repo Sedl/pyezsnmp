@@ -1,10 +1,7 @@
-# from .. import EzSNMP
+from .. import EzSNMP
 
 
-class BaseDevice(object):
-
-    def __init__(self, ezsnmp):
-        self._ezsnmp = ezsnmp
+class BaseDevice(EzSNMP):
 
     def sysdescr(self):
         '''Returns the SNMPv2-MIB::sysDescr.0 string of the device
@@ -12,7 +9,7 @@ class BaseDevice(object):
         Returns:
             SNMPv2-MIB::sysDescr.0
         '''
-        descr = self._ezsnmp.get((1, 3, 6, 1, 2, 1, 1, 1, 0))
+        descr = self.get((1, 3, 6, 1, 2, 1, 1, 1, 0))
         return str(descr[0][1])
 
     def walk_iftype(self):
@@ -27,7 +24,7 @@ class BaseDevice(object):
         Returns:
             dict - {oid: iftype}
         '''
-        iftypes = {oid[-1]: val for oid, val in self._ezsnmp.walk_iter(
+        iftypes = {oid[-1]: val for oid, val in self.walk_iter(
                 (1, 3, 6, 1, 2, 1, 2, 2, 1, 3), convert=int)}
         return iftypes
 
@@ -42,7 +39,7 @@ class BaseDevice(object):
         Returns:
             dict - {oid: ifname}
         '''
-        ifname = {oid[-1]: val for oid, val in self._ezsnmp.walk_iter(
+        ifname = {oid[-1]: val for oid, val in self.walk_iter(
             (1, 3, 6, 1, 2, 1, 31, 1, 1, 1, 1), convert=str)}
         return ifname
 
@@ -55,7 +52,7 @@ class BaseDevice(object):
         Returns:
             dict - {oid: ifdescr}
         '''
-        ifdescr = {oid[-1]: val for oid, val in self._ezsnmp.walk_iter(
+        ifdescr = {oid[-1]: val for oid, val in self.walk_iter(
             (1, 3, 6, 1, 2, 1, 2, 2, 1, 2), convert=str)}
         return ifdescr
 
@@ -68,7 +65,7 @@ class BaseDevice(object):
         Returns:
             dict - {oid: ifalias}
         '''
-        ifalias = {oid[-1]: val for oid, val in self._ezsnmp.walk_iter(
+        ifalias = {oid[-1]: val for oid, val in self.walk_iter(
             (1, 3, 6, 1, 2, 1, 31, 1, 1, 1, 18), convert=str)}
         return ifalias
 
@@ -83,7 +80,7 @@ class BaseDevice(object):
         Returns:
             dict = {oid: ifadminstatus
         '''
-        ifstatus = {oid[-1]: val for oid, val in self._ezsnmp.walk_iter(
+        ifstatus = {oid[-1]: val for oid, val in self.walk_iter(
             (1, 3, 6, 1, 2, 1, 2, 2, 1, 7),
             convert=int)}
         return ifstatus
