@@ -1,4 +1,6 @@
 
+import threading
+
 from pysnmp.entity.rfc3413.oneliner import cmdgen
 #   from pysnmp.proto import rfc1902
 from pyasn1.type.univ import ObjectIdentifier
@@ -6,7 +8,7 @@ from pyasn1.type.univ import ObjectIdentifier
 from .exc import SNMPTimeout
 from .exc import SNMPError
 
-CMDGEN = None
+MOD_LOCAL = threading.local()
 
 
 def get_cmdgen():
@@ -18,10 +20,10 @@ def get_cmdgen():
     Returns:
         :class:`pysnmp.entity.rfc3413.oneliner.cmdgen.CommandGenerator`
     '''
-    global CMDGEN
-    if not CMDGEN:
-        CMDGEN = cmdgen.CommandGenerator()
-    return CMDGEN
+    cmdgen_inst = getattr(MOD_LOCAL, 'cmdgen', None)
+    if cmdgen_inst is None:
+        MOD_LOCAL.cmdgen = cmdgen.CommandGenerator()
+    return MOD_LOCAL.cmdgen
 
 
 class EzSNMP():
