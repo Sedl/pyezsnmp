@@ -97,3 +97,24 @@ class BaseDevice(EzSNMP):
             (1, 3, 6, 1, 2, 1, 2, 2, 1, 8),
             convert=int)}
         return ifoper
+
+    def walk_ifstackstatus(self):
+        '''IF-MIB::ifStackStatus (1.3.6.1.2.1.31.1.2.1.3)
+
+        This function returns a dict of oids with a list of subinterfaces.
+        You can use this to find the ports in a Cisco Port-channel interface.
+
+        This also applies to CASA Systems CMTS upstream channels.
+        Each physical channel has one or more logical subinterfaces.
+
+        Returns:
+            dict - {oid: [subinterfaceoid1, subinterfaceoid2, ...]}
+        '''
+        ifstack = {}
+        for oid, val in self.walk_iter((1, 3, 6, 1, 2, 1, 31, 1, 2, 1, 3)):
+            intf, subintf = oid[-2:]
+            if intf not in ifstack:
+                ifstack[intf] = []
+            ifstack[intf].append(subintf)
+
+        return ifstack
