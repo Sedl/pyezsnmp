@@ -148,7 +148,7 @@ class EzSNMP():
             else:
                 yield oid_ret, val
 
-    def get(self, oid):
+    def get(self, *oids):
         '''Gets a specific SNMP OID
 
         Args:
@@ -161,7 +161,7 @@ class EzSNMP():
         error_indication, error_status, error_index, \
             var_binds = self._generator.getCmd(self._comm_data,
                                                self._transport,
-                                               oid)
+                                               *oids)
         if error_indication:
             if not error_status and not error_index:
                 raise SNMPTimeout()
